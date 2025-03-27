@@ -70,14 +70,17 @@ def upload():
         file = request.files['file']
         if file.filename.endswith('.csv'):
             try:
-                # Lasīt CSV failu ar semikola vai komata atdalītāju
+                # Vispirms mēģinām ar semikolu
                 try:
                     df = pd.read_csv(file, sep=';')
                 except:
+                    # Ja neizdodas, mēģinām ar komatu
+                    file.seek(0)  # Atgriežam faila rādītāju sākumā
                     df = pd.read_csv(file, sep=',')
+                
                 print("Pieejamās kolonnas:", df.columns.tolist())
                 
-                # Atrast vārdu un vecuma kolonnas
+                # Meklējam vārdu un vecuma kolonnas
                 name_col = None
                 age_col = None
                 
@@ -88,15 +91,14 @@ def upload():
                     elif 'age' in col_lower:
                         age_col = col
                 
-                # Pārbaudīt, vai atrastas nepieciešamās kolonnas
                 if name_col is None or age_col is None:
                     return "Kļūda: Nevarēja atrast atbilstošas kolonnas. Lūdzu, pārliecinieties, ka CSV failā ir kolonnas vārdiem un vecumiem."
                 
-                # Apstrādāt vecuma datus
+                # Apstrādājam vecuma datus
                 df[age_col] = pd.to_numeric(df[age_col].astype(str).str.replace(r'[^\d.-]', ''), errors='coerce')
                 df = df.dropna(subset=[age_col])
                 
-                # Ievietot datus datubāzē
+                # Ievietojam datus datubāzē
                 for _, row in df.iterrows():
                     Data.create(
                         name=str(row[name_col]),
@@ -106,7 +108,6 @@ def upload():
             except Exception as e:
                 return f"Kļūda faila apstrādē: {str(e)}"
     return render_template('upload.html')
-
 
 # Datu vizualizācijas maršruts - izveido dažādus grafikus un diagrammas
 @app.route('/visualize')
