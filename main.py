@@ -70,17 +70,14 @@ def upload():
         file = request.files['file']
         if file.filename.endswith('.csv'):
             try:
-                # Vispirms mēģinām ar semikolu
                 try:
                     df = pd.read_csv(file, sep=';')
                 except:
-                    # Ja neizdodas, mēģinām ar komatu
-                    file.seek(0)  # Atgriežam faila rādītāju sākumā
+                    file.seek(0)
                     df = pd.read_csv(file, sep=',')
                 
                 print("Pieejamās kolonnas:", df.columns.tolist())
                 
-                # Meklējam vārdu un vecuma kolonnas
                 name_col = None
                 age_col = None
                 
