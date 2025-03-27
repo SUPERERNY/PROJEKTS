@@ -26,23 +26,21 @@ class Data(Model):
 
 # Funkcija datubāzes inicializēšanai
 def init_db():
-    # Aizveram esošos savienojumus, lai izvairītos no konfliktiem
     if not db.is_closed():
         db.close()
     
-    # Izdzēšam esošo datubāzes failu, ja tāds eksistē
     if os.path.exists('data.db'):
         os.remove('data.db')
     
-    # Izveidojam jaunu datubāzes savienojumu
+    # Izveidot jaunu datubāzes savienojumu
     db.connect()
     
-    # Izveidojam tabulas pēc Datu modeļa
+    # Izveidot tabulas pēc datu modeļa
     db.create_tables([Data], safe=True)
     db.close()
 
 
-# Inicializējam datubāzi, kad aplikācija sāk darboties
+# Inicializēt datubāzi, kad aplikācija sāk darboties
 init_db()
 
 
@@ -50,14 +48,12 @@ init_db()
 @app.route('/')
 def index():
     try:
-        # Pārliecināmies, ka datubāzes savienojums ir atvērts
         if db.is_closed():
             db.connect()
         
-        # Iegūstam visus ierakstus no datubāzes
+        # Iegūst visus ierakstus no datubāzes
         data = list(Data.select().dicts())
         
-        # Aizveram datubāzes savienojumu
         if not db.is_closed():
             db.close()
             
@@ -74,11 +70,14 @@ def upload():
         file = request.files['file']
         if file.filename.endswith('.csv'):
             try:
-                # Lasām CSV failu ar semikola atdalītāju
-                df = pd.read_csv(file, sep=';')
+                # Lasīt CSV failu ar semikola vai komata atdalītāju
+                try:
+                    df = pd.read_csv(file, sep=';')
+                except:
+                    df = pd.read_csv(file, sep=',')
                 print("Pieejamās kolonnas:", df.columns.tolist())
                 
-                # Automātiski atrodam vārdu un vecuma kolonnas
+                # Atrast vārdu un vecuma kolonnas
                 name_col = None
                 age_col = None
                 
@@ -89,15 +88,15 @@ def upload():
                     elif 'age' in col_lower:
                         age_col = col
                 
-                # Pārbaudām, vai atrastas nepieciešamās kolonnas
+                # Pārbaudīt, vai atrastas nepieciešamās kolonnas
                 if name_col is None or age_col is None:
                     return "Kļūda: Nevarēja atrast atbilstošas kolonnas. Lūdzu, pārliecinieties, ka CSV failā ir kolonnas vārdiem un vecumiem."
                 
-                # Tīram un apstrādājam vecuma datus
+                # Apstrādāt vecuma datus
                 df[age_col] = pd.to_numeric(df[age_col].astype(str).str.replace(r'[^\d.-]', ''), errors='coerce')
                 df = df.dropna(subset=[age_col])
                 
-                # Ievietojam datus datubāzē
+                # Ievietot datus datubāzē
                 for _, row in df.iterrows():
                     Data.create(
                         name=str(row[name_col]),
@@ -116,7 +115,6 @@ def visualize():
         # Iegūstam datus no datubāzes un pārvēršam tos pandas DataFrame
         data = pd.DataFrame(list(Data.select().dicts()))
         
-        # Apstrādājam gadījumu, kad nav pieejamu datu
         if data.empty:
             return render_template('visualize.html',
                                  error_message="Nav augšupielādētu datu. Lūdzu, vispirms augšupielādējiet CSV failu.",
@@ -124,11 +122,11 @@ def visualize():
                                  pie_plot=None,
                                  line_plot=None)
         
-        # Izveidojam static direktoriju attēlu glabāšanai
+        # Izveidot static direktoriju attēlu glabāšanai
         if not os.path.exists('static'):
             os.makedirs('static')
         
-        # 1. Izveidojam Stabveida Diagrammu, kas parāda vecuma sadalījumu pēc vārdiem
+        # Izveidot Stabveida Diagrammu, kas parāda vecuma sadalījumu pēc vārdiem
         plt.figure(figsize=(10, 6))
         sns.barplot(data=data, x='name', y='age')
         plt.xticks(rotation=45)
@@ -137,7 +135,7 @@ def visualize():
         plt.savefig('static/barplot.png')
         plt.close()
         
-        # 2. Izveidojam Pīrāga Diagrammu, kas parāda vecuma grupu sadalījumu
+        # Izveidot Pīrāga Diagrammu, kas parāda vecuma grupu sadalījumu
         plt.figure(figsize=(10, 6))
         # Grupējam vecumus kategorijās
         age_groups = pd.cut(data['age'], bins=[0, 18, 30, 45, 60, 100], labels=['0-18', '19-30', '31-45', '46-60', '60+'])
@@ -147,7 +145,7 @@ def visualize():
         plt.savefig('static/pieplot.png')
         plt.close()
         
-        # 3. Izveidojam Kastes Diagrammu, kas parāda vecuma sadalījuma statistiku
+        # Izveidot Kastes Diagrammu, kas parāda vecuma sadalījuma statistiku
         plt.figure(figsize=(10, 6))
         sns.boxplot(data=data, y='age')
         plt.title('Vecuma sadalījuma kastes diagramma')
@@ -173,11 +171,11 @@ def visualize():
 def filter_data():
     filtered_data = []
     if request.method == 'POST':
-        # Iegūstam vecuma diapazonu no formas
+        # Iegūt vecuma diapazonu no formas
         min_age = int(request.form.get('min_value', 0))
         max_age = int(request.form.get('max_value', 100))
         
-        # Meklējam ierakstus datubāzē pēc vecuma diapazona
+        # Sameklēt ierakstus datubāzē pēc vecuma diapazona
         query = Data.select().where(Data.age.between(min_age, max_age))
         filtered_data = list(query.dicts())
     
@@ -188,14 +186,12 @@ def filter_data():
 @app.route('/api/stats')
 def get_stats():
     try:
-        # Pārliecināmies, ka datubāzes savienojums ir atvērts
         if db.is_closed():
             db.connect()
         
-        # Iegūstam visus datus
+        # Iegūt visus datus
         data = list(Data.select().dicts())
         
-        # Apstrādājam gadījumu, kad nav pieejamu datu
         if not data:
             return jsonify({
                 'total_records': 0,
@@ -204,7 +200,7 @@ def get_stats():
                 'min_age': 0
             })
         
-        # Aprēķinām statistiku
+        # Aprēķināt statistiku
         df = pd.DataFrame(data)
         stats = {
             'total_records': len(df),
@@ -213,7 +209,6 @@ def get_stats():
             'min_age': int(df['age'].min())
         }
         
-        # Aizveram datubāzes savienojumu
         if not db.is_closed():
             db.close()
             
@@ -232,15 +227,12 @@ def get_stats():
 @app.route('/clear_data', methods=['POST'])
 def clear_data():
     try:
-        # Pārliecināmies, ka datubāzes savienojums ir atvērts
         if db.is_closed():
             db.connect()
         
-        # Izdzēšam visus ierakstus transakcijā
         with db.atomic():
             Data.delete().execute()
         
-        # Aizveram datubāzes savienojumu
         if not db.is_closed():
             db.close()
             

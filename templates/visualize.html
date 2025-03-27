@@ -9,30 +9,23 @@
         /* Pielāgoti CSS stili */
         .card {
             margin: 20px 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Pievienojam ēnu kartiņām */
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .navbar {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #f8f9fa;
         }
         .navbar-brand {
-            color: white !important;
-            font-weight: 600;
-            font-size: 1.5rem;
+            color: #333;
         }
         .nav-link {
             color: #333;
             font-weight: 500;
         }
         .nav-link:hover {
-            color: #007bff;  /* Mainām krāsu uzvedot peli */
+            color: #007bff;
         }
         .nav-link.active {
-            color: #000 !important;  /* Padarām aktīvo saiti melnu */
+            color: #000 !important;
         }
         .chart-container {
             height: 400px;
@@ -86,14 +79,14 @@
     <div class="container mt-4">
         <h1 class="mb-4">Datu Vizualizācija</h1>
         
-        <!-- Parādam kļūdas ziņojumu, ja tāds ir -->
+        <!-- Parāda kļūdas ziņojumu, ja tāds ir -->
         {% if error_message %}
         <div class="error-message">
             {{ error_message }}
         </div>
         {% endif %}
         
-        <!-- Parādam vizualizācijas, ja nav kļūdu -->
+        <!-- Parāda vizualizācijas, ja nav kļūdu -->
         {% if not error_message %}
         <!-- Pirmā diagrammu rinda -->
         <div class="row">
@@ -118,7 +111,7 @@
             </div>
         </div>
 
-        <!-- Otrā rinda - Kastes Diagramma -->
+        <!-- Kastes Diagramma -->
         <div class="row">
             <div class="col-md-12">
                 <div class="card">

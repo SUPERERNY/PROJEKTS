@@ -8,17 +8,17 @@
         /* Pielāgoti CSS stili */
         .card {
             margin: 20px 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Pievienojam ēnu kartiņām */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .nav-link {
             color: #333;
             font-weight: 500;
         }
         .nav-link:hover {
-            color: #007bff;  /* Mainām krāsu uzvedot peli */
+            color: #007bff;
         }
         .nav-link.active {
-            color: #000 !important;  /* Padarām aktīvo saiti melnu */
+            color: #000 !important;
         }
         .stats-card {
             background-color: #007bff;
@@ -179,7 +179,6 @@
                 })
                 .catch(error => {
                     console.error('Kļūda statistikas iegūšanā:', error);
-                    // Iestatām noklusētās vērtības kļūdas gadījumā
                     document.getElementById('total-records').textContent = '0';
                     document.getElementById('average-age').textContent = '0.0';
                     document.getElementById('max-age').textContent = '0';
@@ -196,7 +195,7 @@
             .then(data => {
                 if (data.success) {
                     alert('Visi dati ir izdzēsti');
-                    location.reload(); // Atjaunojam lapu, lai parādītu tukšus datus
+                    location.reload();
                 } else {
                     alert('Kļūda: ' + data.message);
                 }
@@ -207,10 +206,8 @@
             });
         }
 
-        // Atjaunojam statistiku, kad lapa tiek ielādēta
         updateStats();
         
-        // Atjaunojam statistiku ik pēc 5 sekundēm
         setInterval(updateStats, 5000);
     </script>
 </body>
