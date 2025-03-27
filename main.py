@@ -1,84 +1,84 @@
-# Import required libraries
-from flask import Flask, render_template, request, redirect, url_for, jsonify  # Flask web framework for creating web applications
-from peewee import SqliteDatabase, Model, IntegerField, TextField  # Database ORM for SQLite
-import pandas as pd  # Data manipulation and analysis library
-import matplotlib.pyplot as plt  # Plotting library for creating static visualizations
-import seaborn as sns  # Statistical visualization library
-import os  # Operating system interface
-from datetime import datetime  # Date and time handling
+# Nepieciešamo bibliotēku importēšana
+from flask import Flask, render_template, request, redirect, url_for, jsonify  # Flask tīmekļa ietvara bibliotēka
+from peewee import SqliteDatabase, Model, IntegerField, TextField  # Datubāzes ORM bibliotēka SQLite
+import pandas as pd  # Datu manipulācijas un analīzes bibliotēka
+import matplotlib.pyplot as plt  # Grafiku veidošanas bibliotēka
+import seaborn as sns  # Statistiskās vizualizācijas bibliotēka
+import os  # Operētājsistēmas saskarnes bibliotēka
+from datetime import datetime  # Datuma un laika apstrādes bibliotēka
 
-# Initialize Flask application
+# Flask aplikācijas inicializēšana
 app = Flask(__name__)
 
-# Database configuration - using SQLite as the database
+# Datubāzes konfigurācija - izmantojam SQLite
 db = SqliteDatabase('data.db')
 
 
-# Define the Data model for storing name and age information
+# Datu modeļa definēšana vārdu un vecumu informācijas glabāšanai
 class Data(Model):
-    id = IntegerField(primary_key=True)  # Unique identifier for each record
-    name = TextField()  # Field to store names
-    age = IntegerField()  # Field to store ages
+    id = IntegerField(primary_key=True)  # Unikāls identifikators katram ierakstam
+    name = TextField()  # Lauks vārdu glabāšanai
+    age = IntegerField()  # Lauks vecumu glabāšanai
 
     class Meta:
-        database = db  # Specify which database to use
+        database = db  # Norāda, kuru datubāzi izmantot
 
 
-# Function to initialize the database
+# Funkcija datubāzes inicializēšanai
 def init_db():
-    # Close any existing connections to prevent conflicts
+    # Aizveram esošos savienojumus, lai izvairītos no konfliktiem
     if not db.is_closed():
         db.close()
     
-    # Delete existing database file if it exists to start fresh
+    # Izdzēšam esošo datubāzes failu, ja tāds eksistē
     if os.path.exists('data.db'):
         os.remove('data.db')
     
-    # Create new database connection
+    # Izveidojam jaunu datubāzes savienojumu
     db.connect()
     
-    # Create tables based on the Data model
+    # Izveidojam tabulas pēc Datu modeļa
     db.create_tables([Data], safe=True)
     db.close()
 
 
-# Initialize database when the application starts
+# Inicializējam datubāzi, kad aplikācija sāk darboties
 init_db()
 
 
-# Route for the main page - displays all data in a table
+# Galvenās lapas maršruts - parāda visus datus tabulā
 @app.route('/')
 def index():
     try:
-        # Ensure database connection is open
+        # Pārliecināmies, ka datubāzes savienojums ir atvērts
         if db.is_closed():
             db.connect()
         
-        # Retrieve all records from the database
+        # Iegūstam visus ierakstus no datubāzes
         data = list(Data.select().dicts())
         
-        # Close database connection
+        # Aizveram datubāzes savienojumu
         if not db.is_closed():
             db.close()
             
         return render_template('index.html', data=data)
     except Exception as e:
-        print(f"Error in index: {str(e)}")
+        print(f"Kļūda index lapā: {str(e)}")
         return render_template('index.html', data=[])
 
 
-# Route for handling file uploads - accepts CSV files with name and age data
+# Failu augšupielādes maršruts - pieņem CSV failus ar vārdu un vecumu datiem
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
         file = request.files['file']
         if file.filename.endswith('.csv'):
             try:
-                # Read the CSV file with semicolon separator
+                # Lasām CSV failu ar semikola atdalītāju
                 df = pd.read_csv(file, sep=';')
-                print("Available columns:", df.columns.tolist())
+                print("Pieejamās kolonnas:", df.columns.tolist())
                 
-                # Automatically detect name and age columns
+                # Automātiski atrodam vārdu un vecuma kolonnas
                 name_col = None
                 age_col = None
                 
@@ -89,15 +89,15 @@ def upload():
                     elif 'age' in col_lower:
                         age_col = col
                 
-                # Validate that required columns were found
+                # Pārbaudām, vai atrastas nepieciešamās kolonnas
                 if name_col is None or age_col is None:
-                    return "Error: Could not find appropriate columns. Please make sure your CSV has columns for names and ages."
+                    return "Kļūda: Nevarēja atrast atbilstošas kolonnas. Lūdzu, pārliecinieties, ka CSV failā ir kolonnas vārdiem un vecumiem."
                 
-                # Clean and process the age data
+                # Tīram un apstrādājam vecuma datus
                 df[age_col] = pd.to_numeric(df[age_col].astype(str).str.replace(r'[^\d.-]', ''), errors='coerce')
                 df = df.dropna(subset=[age_col])
                 
-                # Insert data into the database
+                # Ievietojam datus datubāzē
                 for _, row in df.iterrows():
                     Data.create(
                         name=str(row[name_col]),
@@ -105,18 +105,18 @@ def upload():
                     )
                 return redirect(url_for('index'))
             except Exception as e:
-                return f"Error processing file: {str(e)}"
+                return f"Kļūda faila apstrādē: {str(e)}"
     return render_template('upload.html')
 
 
-# Route for data visualization - creates various charts and graphs
+# Datu vizualizācijas maršruts - izveido dažādus grafikus un diagrammas
 @app.route('/visualize')
 def visualize():
     try:
-        # Get data from database and convert to pandas DataFrame
+        # Iegūstam datus no datubāzes un pārvēršam tos pandas DataFrame
         data = pd.DataFrame(list(Data.select().dicts()))
         
-        # Handle case when no data is available
+        # Apstrādājam gadījumu, kad nav pieejamu datu
         if data.empty:
             return render_template('visualize.html',
                                  error_message="Nav augšupielādētu datu. Lūdzu, vispirms augšupielādējiet CSV failu.",
@@ -124,33 +124,33 @@ def visualize():
                                  pie_plot=None,
                                  line_plot=None)
         
-        # Create static directory for storing generated images
+        # Izveidojam static direktoriju attēlu glabāšanai
         if not os.path.exists('static'):
             os.makedirs('static')
         
-        # 1. Create Bar Plot showing age distribution by name
+        # 1. Izveidojam Stabveida Diagrammu, kas parāda vecuma sadalījumu pēc vārdiem
         plt.figure(figsize=(10, 6))
         sns.barplot(data=data, x='name', y='age')
         plt.xticks(rotation=45)
-        plt.title('Age Distribution by Name')
+        plt.title('Vecuma sadalījums pēc vārdiem')
         plt.tight_layout()
         plt.savefig('static/barplot.png')
         plt.close()
         
-        # 2. Create Pie Chart showing age group distribution
+        # 2. Izveidojam Pīrāga Diagrammu, kas parāda vecuma grupu sadalījumu
         plt.figure(figsize=(10, 6))
-        # Group ages into categories
+        # Grupējam vecumus kategorijās
         age_groups = pd.cut(data['age'], bins=[0, 18, 30, 45, 60, 100], labels=['0-18', '19-30', '31-45', '46-60', '60+'])
         age_distribution = age_groups.value_counts()
         plt.pie(age_distribution, labels=age_distribution.index, autopct='%1.1f%%')
-        plt.title('Age Distribution')
+        plt.title('Vecuma sadalījums')
         plt.savefig('static/pieplot.png')
         plt.close()
         
-        # 3. Create Box Plot showing age distribution statistics
+        # 3. Izveidojam Kastes Diagrammu, kas parāda vecuma sadalījuma statistiku
         plt.figure(figsize=(10, 6))
         sns.boxplot(data=data, y='age')
-        plt.title('Age Distribution Box Plot')
+        plt.title('Vecuma sadalījuma kastes diagramma')
         plt.savefig('static/lineplot.png')
         plt.close()
         
@@ -160,7 +160,7 @@ def visualize():
                              pie_plot='static/pieplot.png',
                              line_plot='static/lineplot.png')
     except Exception as e:
-        print(f"Error in visualize: {str(e)}")
+        print(f"Kļūda visualize lapā: {str(e)}")
         return render_template('visualize.html',
                              error_message="Radusies kļūda, mēģiniet vēlreiz",
                              bar_plot=None,
@@ -168,34 +168,34 @@ def visualize():
                              line_plot=None)
 
 
-# Route for filtering data based on age range
+# Datu filtrēšanas maršruts pēc vecuma diapazona
 @app.route('/filter', methods=['GET', 'POST'])
 def filter_data():
     filtered_data = []
     if request.method == 'POST':
-        # Get age range from form
+        # Iegūstam vecuma diapazonu no formas
         min_age = int(request.form.get('min_value', 0))
         max_age = int(request.form.get('max_value', 100))
         
-        # Query database for records within the age range
+        # Meklējam ierakstus datubāzē pēc vecuma diapazona
         query = Data.select().where(Data.age.between(min_age, max_age))
         filtered_data = list(query.dicts())
     
     return render_template('filter.html', data=filtered_data)
 
 
-# API endpoint for getting statistical information about the data
+# API galapunkts statistiskās informācijas iegūšanai par datiem
 @app.route('/api/stats')
 def get_stats():
     try:
-        # Ensure database connection
+        # Pārliecināmies, ka datubāzes savienojums ir atvērts
         if db.is_closed():
             db.connect()
         
-        # Get all data
+        # Iegūstam visus datus
         data = list(Data.select().dicts())
         
-        # Handle case when no data is available
+        # Apstrādājam gadījumu, kad nav pieejamu datu
         if not data:
             return jsonify({
                 'total_records': 0,
@@ -204,7 +204,7 @@ def get_stats():
                 'min_age': 0
             })
         
-        # Calculate statistics
+        # Aprēķinām statistiku
         df = pd.DataFrame(data)
         stats = {
             'total_records': len(df),
@@ -213,13 +213,13 @@ def get_stats():
             'min_age': int(df['age'].min())
         }
         
-        # Close database connection
+        # Aizveram datubāzes savienojumu
         if not db.is_closed():
             db.close()
             
         return jsonify(stats)
     except Exception as e:
-        print(f"Error in get_stats: {str(e)}")
+        print(f"Kļūda get_stats: {str(e)}")
         return jsonify({
             'total_records': 0,
             'average_age': 0,
@@ -228,30 +228,30 @@ def get_stats():
         })
 
 
-# API endpoint for clearing all data from the database
+# API galapunkts visu datu izdzēšanai no datubāzes
 @app.route('/clear_data', methods=['POST'])
 def clear_data():
     try:
-        # Ensure database connection
+        # Pārliecināmies, ka datubāzes savienojums ir atvērts
         if db.is_closed():
             db.connect()
         
-        # Delete all records in a transaction
+        # Izdzēšam visus ierakstus transakcijā
         with db.atomic():
             Data.delete().execute()
         
-        # Close database connection
+        # Aizveram datubāzes savienojumu
         if not db.is_closed():
             db.close()
             
-        return jsonify({'success': True, 'message': 'All data has been cleared'})
+        return jsonify({'success': True, 'message': 'Visi dati ir izdzēsti'})
     except Exception as e:
-        print(f"Error clearing data: {str(e)}")
+        print(f"Kļūda datu izdzēšanā: {str(e)}")
         if not db.is_closed():
             db.close()
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
-# Start the Flask application in debug mode
+# Flask servera palaišana debug režīmā
 if __name__ == '__main__':
     app.run(debug=True)
