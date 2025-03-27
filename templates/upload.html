@@ -6,78 +6,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         /* Pielāgoti CSS stili */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
-        }
         .card {
             margin: 20px 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: none;
-            border-radius: 15px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-        }
-        .navbar {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .navbar-brand {
-            color: white !important;
-            font-weight: 600;
-            font-size: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Pievienojam ēnu kartiņām */
         }
         .nav-link {
-            color: rgba(255, 255, 255, 0.9) !important;
+            color: #333;
             font-weight: 500;
-            transition: color 0.3s ease;
         }
         .nav-link:hover {
-            color: white !important;
+            color: #007bff;  /* Mainām krāsu uzvedot peli */
         }
         .nav-link.active {
-            color: white !important;
-            font-weight: 600;
+            color: #000 !important;  /* Padarām aktīvo saiti melnu */
         }
         .upload-area {
-            border: 2px dashed #4f46e5;
+            border: 2px dashed #007bff;
             border-radius: 15px;
             padding: 40px;
             text-align: center;
             background-color: #f8f9fa;
             cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .upload-area::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .upload-area:hover {
-            border-color: #6366f1;
-            background-color: #f1f5f9;
-        }
-        .upload-area:hover::before {
-            opacity: 1;
         }
         .upload-area i {
             font-size: 3rem;
-            color: #4f46e5;
+            color: #007bff;
             margin-bottom: 1rem;
         }
         .upload-area p {
-            color: #4f46e5;
+            color: #007bff;
             font-weight: 500;
             margin-bottom: 0.5rem;
         }
@@ -87,28 +44,25 @@
             color: #6b7280;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            background-color: #007bff;
             border: none;
             padding: 10px 25px;
             border-radius: 8px;
             font-weight: 500;
-            transition: all 0.3s ease;
         }
         .btn-primary:hover {
-            background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+            background-color: #0056b3;
         }
         .btn-primary:disabled {
-            background: #cbd5e1;
+            background-color: #cbd5e1;
             cursor: not-allowed;
         }
         .card-title {
-            color: #1f2937;
+            color: #333;
             font-weight: 600;
         }
         h1 {
-            color: #1f2937;
+            color: #333;
             font-weight: 600;
             margin-bottom: 2rem;
         }

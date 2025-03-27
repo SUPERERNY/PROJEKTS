@@ -7,17 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         /* Pielāgoti CSS stili */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
-        }
         .card {
             margin: 20px 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: none;
-            border-radius: 15px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Pievienojam ēnu kartiņām */
         }
         .card:hover {
             transform: translateY(-5px);
@@ -37,10 +29,10 @@
             font-weight: 500;
         }
         .nav-link:hover {
-            color: #007bff;
+            color: #007bff;  /* Mainām krāsu uzvedot peli */
         }
         .nav-link.active {
-            color: #000 !important;
+            color: #000 !important;  /* Padarām aktīvo saiti melnu */
         }
         .chart-container {
             height: 400px;
